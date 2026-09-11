@@ -42,6 +42,7 @@ jobs:
           test -f .env || cp .env.example .env
           mkdir -p database
           test -f database/database.sqlite || touch database/database.sqlite
+          test -f database/testing.sqlite || touch database/testing.sqlite
           php artisan key:generate --force
           composer require laravel/sanctum laravel/reverb laravel/horizon --with-all-dependencies --no-interaction --no-progress
           php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider" --force
@@ -53,7 +54,7 @@ jobs:
           composer validate --strict
           php artisan about --only=environment,cache,database
           php artisan route:list --path=api
-          php artisan test
+          php artisan test --without-tty
 
       - name: Validate Flutter
         working-directory: mobile
