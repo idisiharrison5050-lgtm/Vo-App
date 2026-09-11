@@ -1,7 +1,7 @@
 # Vo-App Implementation Status
 
 ## Current phase
-Marketplace catalog + transactional platform foundation + premium mobile shell.
+Transactional number marketplace + premium mobile shell.
 
 ## Release philosophy
 Vo-App is being built as a substantial first release. We are not rushing to market or reducing the product to a small MVP. Release happens only after the planned platform, UX, security, reliability and operational requirements are implemented and validated.
@@ -16,25 +16,30 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 - Flutter Android/iOS application shell is present.
 - Versioned API contract is documented and registered in Laravel.
 - PostgreSQL database/accounting model is documented.
-- Core marketplace schema now models countries, services, providers, phone-number inventory, offers, orders and persistent number assignments.
+- Core marketplace schema models countries, services, providers, phone-number inventory, offers, orders and persistent number assignments.
 - Initial marketplace country/service catalog seeder is present without inventing provider inventory or production prices.
-- Read-only marketplace catalog endpoints are live in the API contract and Laravel routes.
-- Security and abuse-control baseline is documented.
+- Read-only marketplace catalog endpoints are available through the versioned API.
+- Authenticated number purchase endpoint is registered under `/api/v1/orders/numbers`.
+- Number purchase command validates the server-side offer, provider and capability, locks available inventory, creates a short reservation, debits the wallet and creates a persistent assignment in one transaction.
+- Monthly, quarterly and annual terms are represented as persistent customer assignments with explicit lifecycle dates.
+- Purchase requests require a UUID `Idempotency-Key` and repeat requests return the original order rather than charging twice.
 - Wallet account aggregate has been added so financial locking does not depend on summing ledger rows.
 - Wallet credit/debit operations are idempotent and transaction-scoped.
 - Ledger entries are associated with a wallet account and retain an auditable post-entry balance.
 - Active number assignment uniqueness is enforced for PostgreSQL.
 - Phone-number inventory is modeled independently from historical customer assignments.
+- Phone inventory now supports short-lived reservation state for provisioning workflows.
 - Provider-neutral number infrastructure contract is defined.
 - SMS and provider webhook persistence models/migrations are defined.
 - Sanctum-based authentication endpoints and versioned API routing are established in code.
 - Flutter has moved from the generated counter app to a premium Vo-App shell with dashboard, wallet, numbers, messages and marketplace-oriented navigation.
+- Unit coverage now exercises successful annual purchase, wallet debit, persistent assignment and purchase idempotency.
 
 ## Next engineering sequence
 1. Get CI fully green and keep dependency locking deterministic.
-2. Add provider implementations behind the provider contract, including health/failover boundaries.
-3. Implement authoritative number search, short-lived reservation, provisioning and persistent monthly/annual assignment commands.
-4. Implement order state transitions and wallet debit/reversal safety around provisioning failures.
+2. Add real provider adapters behind the provider contract, including health checks and failover boundaries.
+3. Move provider provisioning outside long database transactions using durable reservation/order state and asynchronous jobs.
+4. Complete renewal/release lifecycle commands with provider coordination, refunds/reversals and expiry handling.
 5. Implement payment/funding intents, webhook verification and reconciliation.
 6. Implement SMS webhook verification, asynchronous processing, deduplication and realtime delivery.
 7. Build the complete Flutter authentication flow and API client/session layer.
