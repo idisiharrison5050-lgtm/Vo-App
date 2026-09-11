@@ -24,21 +24,26 @@ Revokes the current access token.
 ### GET `/api/v1/me`
 Returns the authenticated account profile and security state.
 
-## Marketplace
+## Marketplace catalog
 
-### GET `/api/v1/catalog/countries`
-Returns active countries available for number inventory.
+### GET `/api/v1/marketplace/countries`
+Returns active countries configured in the marketplace catalog.
 
-### GET `/api/v1/catalog/services`
-Returns supported services/capabilities.
+### GET `/api/v1/marketplace/services`
+Returns active communication/verification service capabilities configured in the catalog.
+
+### GET `/api/v1/marketplace/offers`
+Returns active server-side number offers. Supported filters include `country` (ISO-2), `service`, `term` and `currency`. Results are paginated and include country, service and provider metadata that is safe for the client.
+
+The current catalog endpoints are read-only. Inventory availability, reservation, provisioning and authoritative purchase pricing remain server-side commands and are not inferred from client state.
+
+## Number lifecycle
 
 ### GET `/api/v1/numbers`
 Searches available inventory using server-side filters such as country, capability, term type and price band.
 
 ### GET `/api/v1/numbers/{id}`
 Returns a number offer and its current availability. Availability is authoritative at purchase time.
-
-## Number lifecycle
 
 ### POST `/api/v1/orders/numbers`
 Creates a number order. The server calculates price, reserves inventory, validates wallet funds and provisions through the provider layer.
