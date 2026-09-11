@@ -20,6 +20,8 @@ class PhoneNumber extends Model
         'status',
         'capabilities',
         'provider_reference',
+        'reservation_token',
+        'reserved_until',
         'metadata',
     ];
 
@@ -27,6 +29,7 @@ class PhoneNumber extends Model
     {
         return [
             'capabilities' => 'array',
+            'reserved_until' => 'datetime',
             'metadata' => 'array',
         ];
     }
