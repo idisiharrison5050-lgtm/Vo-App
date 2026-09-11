@@ -30,15 +30,17 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 - Phone-number inventory is modeled independently from historical customer assignments.
 - Phone inventory now supports short-lived reservation state for provisioning workflows.
 - Provider-neutral number infrastructure contract is defined.
+- Provider driver registry is now explicit, with configuration separated from credentials and a controlled inventory adapter for the current internal inventory path.
+- Provider failures now have a dedicated domain exception carrying retryability and provider error codes.
 - SMS and provider webhook persistence models/migrations are defined.
 - Sanctum-based authentication endpoints and versioned API routing are established in code.
 - Flutter has moved from the generated counter app to a premium Vo-App shell with dashboard, wallet, numbers, messages and marketplace-oriented navigation.
-- Unit coverage now exercises successful annual purchase, wallet debit, persistent assignment and purchase idempotency.
+- Unit coverage now exercises successful annual purchase, wallet debit, persistent assignment, purchase idempotency and provider-driver resolution.
 
 ## Next engineering sequence
 1. Get CI fully green and keep dependency locking deterministic.
-2. Add real provider adapters behind the provider contract, including health checks and failover boundaries.
-3. Move provider provisioning outside long database transactions using durable reservation/order state and asynchronous jobs.
+2. Implement durable asynchronous number provisioning so external provider calls never occur inside the wallet/database transaction.
+3. Add production provider adapters behind the provider registry, including authenticated API calls, webhook handling, health checks and failover boundaries.
 4. Complete renewal/release lifecycle commands with provider coordination, refunds/reversals and expiry handling.
 5. Implement payment/funding intents, webhook verification and reconciliation.
 6. Implement SMS webhook verification, asynchronous processing, deduplication and realtime delivery.
