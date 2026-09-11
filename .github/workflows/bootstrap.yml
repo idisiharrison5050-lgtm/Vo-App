@@ -1,0 +1,66 @@
+name: Bootstrap Vo-App applications
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: ${{ !hashFiles('backend/artisan') || !hashFiles('mobile/pubspec.yaml') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, bcmath, pdo_sqlite, sqlite3
+          tools: composer
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create Laravel backend
+        if: ${{ !hashFiles('backend/artisan') }}
+        run: |
+          composer create-project laravel/laravel backend --no-interaction --prefer-dist
+
+      - name: Create Flutter application
+        if: ${{ !hashFiles('mobile/pubspec.yaml') }}
+        run: |
+          flutter create mobile --platforms=android,ios --org com.voapp
+
+      - name: Write backend environment defaults
+        run: |
+          if [ -f backend/.env.example ]; then
+            cat >> backend/.env.example <<'EOF'
+
+# Vo-App platform defaults
+APP_NAME=Vo-App
+DB_CONNECTION=pgsql
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+BROADCAST_CONNECTION=reverb
+EOF
+          fi
+
+      - name: Remove bootstrap placeholders
+        run: |
+          rm -f backend/.gitkeep mobile/.gitkeep
+
+      - name: Commit generated applications
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend mobile .github/workflows/bootstrap.yml
+          git commit -m 'chore: bootstrap Laravel and Flutter applications' || exit 0
+          git push
