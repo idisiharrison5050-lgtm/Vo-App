@@ -41,6 +41,7 @@ class PurchaseNumberActionTest extends TestCase
             'name' => 'Inventory Provider',
             'status' => 'active',
             'capabilities' => ['sms'],
+            'metadata' => ['driver' => 'inventory'],
         ]);
         $offer = NumberOffer::create([
             'country_id' => $country->id,
@@ -101,6 +102,7 @@ class PurchaseNumberActionTest extends TestCase
             'name' => 'Inventory US',
             'status' => 'active',
             'capabilities' => ['sms'],
+            'metadata' => ['driver' => 'inventory'],
         ]);
         $offer = NumberOffer::create([
             'country_id' => $country->id,
