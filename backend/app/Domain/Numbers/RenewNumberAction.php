@@ -2,7 +2,7 @@
 
 namespace App\Domain\Numbers;
 
-use App\Domain\Providers\ProviderManager;
+use App\Jobs\RenewNumber;
 use App\Domain\Wallet\WalletLedger;
 use App\Models\NumberAssignment;
 use App\Models\NumberOffer;
@@ -16,13 +16,12 @@ class RenewNumberAction
     public function __construct(
         private DatabaseManager $database,
         private WalletLedger $walletLedger,
-        private ProviderManager $providers,
     ) {
     }
 
     public function execute(int $userId, int $assignmentId, string $idempotencyKey): Order
     {
-        return $this->database->transaction(function () use ($userId, $assignmentId, $idempotencyKey) {
+        $order = $this->database->transaction(function () use ($userId, $assignmentId, $idempotencyKey) {
             $existing = Order::where('user_id', $userId)
                 ->where('idempotency_key', $idempotencyKey)
                 ->with(['phoneNumber.country', 'assignment'])
@@ -66,8 +65,7 @@ class RenewNumberAction
                 throw new RuntimeException('INVALID_RENEWAL_PRICE');
             }
 
-            $providerReference = $assignment->phoneNumber->provider_reference;
-            if (!$providerReference) {
+            if (!$assignment->phoneNumber->provider_reference) {
                 throw new RuntimeException('PROVIDER_REFERENCE_MISSING');
             }
 
@@ -85,7 +83,11 @@ class RenewNumberAction
                 'total_minor' => $totalMinor,
                 'idempotency_key' => $idempotencyKey,
                 'placed_at' => now(),
-                'metadata' => ['assignment_id' => $assignment->id, 'duration_days' => $days],
+                'metadata' => [
+                    'assignment_id' => $assignment->id,
+                    'duration_days' => $days,
+                    'provider_reference' => $assignment->phoneNumber->provider_reference,
+                ],
             ]);
 
             $this->walletLedger->debit(
@@ -97,18 +99,14 @@ class RenewNumberAction
                 ['order_id' => $order->id, 'assignment_id' => $assignment->id],
             );
 
-            $result = $this->providers->driver($assignment->phoneNumber->provider)->renew($providerReference, $days);
-
-            $newEnd = $assignment->ends_at->copy()->addDays($days);
-            $assignment->forceFill(['ends_at' => $newEnd])->save();
-            $order->forceFill([
-                'status' => 'completed',
-                'completed_at' => now(),
-                'metadata' => array_merge($order->metadata ?? [], ['provider_reference' => $result['provider_reference'] ?? $providerReference]),
-            ])->save();
-
-            return $order->fresh(['phoneNumber.country', 'assignment']);
+            return $order;
         });
+
+        if ($order->status === 'pending_provisioning') {
+            RenewNumber::dispatch($order->id);
+        }
+
+        return $order->fresh(['phoneNumber.country', 'assignment']);
     }
 
     private function durationDays(string $termType): int
