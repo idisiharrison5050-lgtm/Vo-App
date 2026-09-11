@@ -34,6 +34,8 @@ jobs:
       - name: Install Laravel platform packages
         working-directory: backend
         run: |
+          test -f .env || cp .env.example .env
+          php artisan key:generate --force
           composer require laravel/sanctum laravel/reverb laravel/horizon --with-all-dependencies --no-interaction --no-progress
           php artisan install:api --no-interaction
           php artisan horizon:install --no-interaction
