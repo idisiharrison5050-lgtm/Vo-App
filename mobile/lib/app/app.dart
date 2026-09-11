@@ -18,66 +18,41 @@ class VoApp extends StatelessWidget {
 
 class VoTheme {
   static ThemeData light() {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF111111),
-      brightness: Brightness.light,
-    );
+    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF111111), brightness: Brightness.light);
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: const Color(0xFFF7F7F5),
-      fontFamily: 'sans',
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
+      appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0, scrolledUnderElevation: 0),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFFE9E9E7),
-        labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-        ),
+        labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
       ),
     );
   }
 
   static ThemeData dark() {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFFF4F4F0),
-      brightness: Brightness.dark,
-    );
+    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFFF4F4F0), brightness: Brightness.dark);
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: const Color(0xFF0B0B0B),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
+      appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0, scrolledUnderElevation: 0),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: const Color(0xFF111111),
         indicatorColor: const Color(0xFF292929),
-        labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-        ),
+        labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: const Color(0xFF171717),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
       ),
     );
   }
@@ -93,12 +68,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int index = 0;
 
-  final pages = const [
-    HomePage(),
-    NumbersPage(),
-    MessagesPage(),
-    WalletPage(),
-  ];
+  final pages = const [HomePage(), NumbersPage(), MessagesPage(), WalletPage()];
 
   @override
   Widget build(BuildContext context) {
@@ -158,65 +128,48 @@ class HomePage extends StatelessWidget {
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-            sliver: SliverToBoxAdapter(child: _BalanceCard(text: text, muted: muted)),
-          ),
+          SliverPadding(padding: const EdgeInsets.fromLTRB(20, 14, 20, 0), sliver: SliverToBoxAdapter(child: _BalanceCard(text: text, muted: muted))),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
             sliver: SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  const Expanded(child: Text('Quick actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-                  Text('View all', style: TextStyle(color: muted, fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
+              child: Row(children: [
+                const Expanded(child: Text('Quick actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+                Text('View all', style: TextStyle(color: muted, fontSize: 13, fontWeight: FontWeight.w600)),
+              ]),
             ),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
             sliver: SliverToBoxAdapter(
-              child: Row(
-                children: const [
-                  Expanded(child: _QuickAction(icon: Icons.add_rounded, label: 'Get a number')),
-                  SizedBox(width: 10),
-                  Expanded(child: _QuickAction(icon: Icons.south_west_rounded, label: 'Fund wallet')),
-                  SizedBox(width: 10),
-                  Expanded(child: _QuickAction(icon: Icons.autorenew_rounded, label: 'Renew')),
-                ],
-              ),
+              child: Row(children: const [
+                Expanded(child: _QuickAction(icon: Icons.add_rounded, label: 'Get a number')),
+                SizedBox(width: 10),
+                Expanded(child: _QuickAction(icon: Icons.south_west_rounded, label: 'Fund wallet')),
+                SizedBox(width: 10),
+                Expanded(child: _QuickAction(icon: Icons.autorenew_rounded, label: 'Renew')),
+              ]),
             ),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 25, 20, 0),
             sliver: SliverToBoxAdapter(
-              child: Row(
-                children: const [
-                  Expanded(child: Text('Your numbers', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-                  Text('See all', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
+              child: Row(children: const [
+                Expanded(child: Text('Your numbers', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+                Text('See all', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              ]),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            sliver: SliverToBoxAdapter(child: _NumberCard()),
-          ),
+          SliverPadding(padding: const EdgeInsets.fromLTRB(20, 12, 20, 0), sliver: SliverToBoxAdapter(child: _NumberCard())),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 25, 20, 0),
             sliver: SliverToBoxAdapter(
-              child: Row(
-                children: const [
-                  Expanded(child: Text('Explore numbers', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-                  Text('Browse', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
+              child: Row(children: const [
+                Expanded(child: Text('Explore numbers', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+                Text('Browse', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              ]),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-            sliver: SliverToBoxAdapter(child: _ExploreCard()),
-          ),
+          SliverPadding(padding: const EdgeInsets.fromLTRB(20, 12, 20, 28), sliver: SliverToBoxAdapter(child: _ExploreCard())),
         ],
       ),
     );
@@ -246,7 +199,11 @@ class _BalanceCard extends StatelessWidget {
           const SizedBox(height: 18),
           Row(children: [
             const Expanded(child: Text('USD wallet', style: TextStyle(color: Colors.white54, fontSize: 12))),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(color: Colors.white.withOpacity(.09), borderRadius: BorderRadius.circular(30)), child: const Text('Fund wallet  →', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700))),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(.09), borderRadius: BorderRadius.circular(30)),
+              child: const Text('Fund wallet  →', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+            ),
           ]),
         ],
       ),
@@ -297,8 +254,16 @@ class _Meta extends StatelessWidget {
   const _Meta({required this.label, required this.value});
   final String label;
   final String value;
+
   @override
-  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)), const SizedBox(height: 3), Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))]);
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      const SizedBox(height: 3),
+      Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+    ],
+  );
 }
 
 class _ExploreCard extends StatelessWidget {
@@ -338,6 +303,20 @@ class _PlaceholderPage extends StatelessWidget {
   const _PlaceholderPage({required this.title, required this.subtitle});
   final String title;
   final String subtitle;
+
   @override
-  Widget build(BuildContext context) => SafeArea(child: Padding(padding: const EdgeInsets.all(22), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const SizedBox(height: 22), Text(title, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1)), const SizedBox(height: 10), Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5))]));
+  Widget build(BuildContext context) => SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 22),
+          Text(title, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1)),
+          const SizedBox(height: 10),
+          Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5)),
+        ],
+      ),
+    ),
+  );
 }
