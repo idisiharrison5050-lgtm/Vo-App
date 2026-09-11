@@ -3,6 +3,7 @@
 namespace App\Domain\Marketplace;
 
 use App\Domain\Wallet\WalletLedger;
+use App\Jobs\ProvisionNumber;
 use App\Models\NumberAssignment;
 use App\Models\NumberOffer;
 use App\Models\Order;
@@ -26,7 +27,7 @@ class PurchaseNumberAction
         bool $autoRenew = false,
         ?int $customDurationDays = null,
     ): Order {
-        return $this->database->transaction(function () use (
+        $order = $this->database->transaction(function () use (
             $userId,
             $offerId,
             $idempotencyKey,
@@ -81,7 +82,6 @@ class PurchaseNumberAction
                 });
 
             $phone = $phoneQuery->lockForUpdate()->first();
-
             if (!$phone) {
                 throw new RuntimeException('NUMBER_UNAVAILABLE');
             }
@@ -123,7 +123,7 @@ class PurchaseNumberAction
                     'offer_id' => $offer->id,
                     'service_id' => $offer->service_id,
                     'reservation_token' => $reservationToken,
-                    'provisioning' => 'inventory',
+                    'provisioning' => 'pending',
                 ],
             ]);
 
@@ -144,22 +144,16 @@ class PurchaseNumberAction
                 'starts_at' => $startsAt,
                 'ends_at' => $endsAt,
                 'auto_renew' => $autoRenew,
-                'status' => 'active',
+                'status' => 'pending_provisioning',
             ]);
 
-            $phone->forceFill([
-                'status' => 'assigned',
-                'reservation_token' => null,
-                'reserved_until' => null,
-            ])->save();
-
-            $order->forceFill([
-                'status' => 'completed',
-                'completed_at' => now(),
-            ])->save();
-
-            return $order->fresh(['phoneNumber.country', 'assignment']);
+            return $order;
         });
+
+        // Provider I/O is deliberately outside the database transaction.
+        ProvisionNumber::dispatch($order->id);
+
+        return $order->fresh(['phoneNumber.country', 'assignment']);
     }
 
     private function durationDays(string $termType, ?int $customDurationDays): int
