@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   bootstrap:
-    if: ${{ !hashFiles('backend/artisan') || !hashFiles('mobile/pubspec.yaml') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,28 +28,20 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Create Laravel backend
-        if: ${{ !hashFiles('backend/artisan') }}
+      - name: Create Laravel backend when missing
         run: |
-          composer create-project laravel/laravel backend --no-interaction --prefer-dist
+          if [ ! -f backend/artisan ]; then
+            composer create-project laravel/laravel backend --no-interaction --prefer-dist
+          else
+            echo 'Laravel backend already exists; leaving it untouched.'
+          fi
 
-      - name: Create Flutter application
-        if: ${{ !hashFiles('mobile/pubspec.yaml') }}
+      - name: Create Flutter application when missing
         run: |
-          flutter create mobile --platforms=android,ios --org com.voapp
-
-      - name: Write backend environment defaults
-        run: |
-          if [ -f backend/.env.example ]; then
-            cat >> backend/.env.example <<'EOF'
-
-# Vo-App platform defaults
-APP_NAME=Vo-App
-DB_CONNECTION=pgsql
-CACHE_STORE=redis
-QUEUE_CONNECTION=redis
-BROADCAST_CONNECTION=reverb
-EOF
+          if [ ! -f mobile/pubspec.yaml ]; then
+            flutter create mobile --platforms=android,ios --org com.voapp
+          else
+            echo 'Flutter application already exists; leaving it untouched.'
           fi
 
       - name: Remove bootstrap placeholders
@@ -61,6 +52,7 @@ EOF
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add backend mobile .github/workflows/bootstrap.yml
-          git commit -m 'chore: bootstrap Laravel and Flutter applications' || exit 0
+          git add backend mobile
+          git diff --cached --quiet && echo 'No bootstrap changes required.' && exit 0
+          git commit -m 'chore: bootstrap Laravel and Flutter applications'
           git push
