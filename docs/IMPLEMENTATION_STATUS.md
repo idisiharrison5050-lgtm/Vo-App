@@ -26,7 +26,7 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 12. Release only after the release gate passes.
 
 ## Current execution checkpoint
-The Laravel and Flutter application shells have been successfully bootstrapped on `main`. The production-foundation workflow is now being executed against the generated applications so the backend packages, API foundation, domain primitives, database migrations, Flutter architecture and validation gates are established in-repository.
+The Laravel and Flutter application shells are bootstrapped on `main`. The foundation workflow is being run against the generated applications with CI-safe Laravel initialization so the backend platform packages, API foundation and validation gates can be established before domain implementation continues.
 
 ## Rule
 Do not mark a feature complete because its happy path works. Completion requires domain logic, validation, authorization, failure states, observability, tests and documentation where applicable.
