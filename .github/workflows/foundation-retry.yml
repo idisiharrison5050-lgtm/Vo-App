@@ -36,6 +36,8 @@ jobs:
         run: |
           composer install --no-interaction --no-progress
           test -f .env || cp .env.example .env
+          mkdir -p database
+          test -f database/database.sqlite || touch database/database.sqlite
           php artisan key:generate --force
           composer require laravel/sanctum laravel/reverb laravel/horizon --with-all-dependencies --no-interaction --no-progress
           php artisan install:api --no-interaction
