@@ -26,9 +26,12 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 12. Release only after the release gate passes.
 
 ## Current execution checkpoint
-The Laravel and Flutter application shells are bootstrapped on `main`. The foundation workflow is being run against the generated applications with CI-safe Laravel initialization so the backend platform packages, API foundation and validation gates can be established before domain implementation continues.
+The Laravel and Flutter application shells are bootstrapped on `main`. API, database, security and provider contracts are now documented as implementation constraints. The next code gate is the transactional platform domain: authentication, wallet accounting, number inventory/assignment, provider events and SMS delivery.
 
-The next implementation gate is the platform domain layer: production-safe authentication/API contracts, PostgreSQL-ready schema, immutable wallet accounting with idempotency, number inventory and persistent customer assignments, provider adapters/webhooks, and the SMS event pipeline.
+## Documentation gates completed
+- `docs/API.md` — versioned API contract and concurrency rules.
+- `docs/DATABASE.md` — production PostgreSQL and accounting model.
+- `docs/SECURITY.md` — account, financial, provider and abuse-control baseline.
 
 ## Rule
 Do not mark a feature complete because its happy path works. Completion requires domain logic, validation, authorization, failure states, observability, tests and documentation where applicable.
