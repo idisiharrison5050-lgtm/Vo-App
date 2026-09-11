@@ -2,15 +2,13 @@
 
 namespace App\Providers;
 
+use App\Domain\Payments\PaymentManager;
 use App\Domain\Providers\InventoryNumberProvider;
 use App\Domain\Providers\ProviderManager;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         $this->app->singleton(ProviderManager::class, function ($app) {
@@ -19,11 +17,12 @@ class AppServiceProvider extends ServiceProvider
 
             return $manager;
         });
+
+        $this->app->singleton(PaymentManager::class, function () {
+            return new PaymentManager();
+        });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         //
