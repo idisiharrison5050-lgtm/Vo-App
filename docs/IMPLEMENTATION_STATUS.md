@@ -21,7 +21,7 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 - Read-only marketplace catalog endpoints are available through the versioned API.
 - Authenticated number purchase endpoint is registered under `/api/v1/orders/numbers`.
 - Number purchase reserves inventory, validates the server-side offer/provider/capability, debits the wallet atomically and creates a pending persistent assignment before dispatching provisioning.
-- External provider provisioning is now dispatched as a durable queue job outside the purchase database transaction.
+- External provider provisioning is dispatched as a durable queue job outside the purchase database transaction.
 - Provider success finalizes the phone assignment and order under row locks.
 - Non-retryable provider failures and exhausted retries release the reservation, fail the assignment/order and issue an idempotent wallet reversal.
 - Monthly, quarterly and annual terms are represented as persistent customer assignments with explicit lifecycle dates.
@@ -40,6 +40,8 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 - Non-auto-renewing expired assignments now have a server-side expiry command scheduled hourly, releasing their inventory while retaining historical assignment records.
 - Payment-intent persistence is now established with provider-neutral contracts, webhook event storage, idempotency, expiry metadata and a provider manager boundary.
 - Payment provider calls are explicitly kept outside database transactions so external payment APIs cannot hold financial locks open.
+- SMS message persistence, idempotent inbound processing and authenticated private realtime user channels are now established.
+- Received SMS events are broadcast through the realtime layer without exposing messages to another user's channel.
 - SMS and provider webhook persistence models/migrations are defined.
 - Sanctum-based authentication endpoints and versioned API routing are established in code.
 - Flutter has moved from the generated counter app to a premium Vo-App shell with dashboard, wallet, numbers, messages and marketplace-oriented navigation.
@@ -47,10 +49,10 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 
 ## Next engineering sequence
 1. Get CI fully green and keep dependency locking deterministic.
-2. Harden renewal concurrency and add dedicated lifecycle tests for renewal, expiry, retries and wallet reversals.
+2. Harden renewal concurrency and add dedicated lifecycle tests for renewal, expiry, retries, wallet reversals and SMS deduplication.
 3. Add a real payment provider adapter and signed webhook reconciliation; never commit provider secrets.
 4. Add production number provider adapters behind the provider registry, including authenticated API calls, webhook handling, health checks and failover boundaries.
-5. Implement SMS webhook verification, asynchronous processing, deduplication and realtime delivery.
+5. Add SMS webhook signature verification, asynchronous webhook jobs and Reverb authentication/client integration.
 6. Build the complete Flutter authentication flow and API client/session layer.
 7. Replace placeholder mobile sections with production marketplace, active-number, SMS, wallet, orders and settings experiences.
 8. Add push notifications, deep links, secure device/session management and offline/error states.
