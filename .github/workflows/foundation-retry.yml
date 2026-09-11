@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/foundation-retry.yml'
+      - 'docs/IMPLEMENTATION_STATUS.md'
 
 permissions:
   contents: write
