@@ -1,0 +1,72 @@
+name: Vo-App platform CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'mobile/**'
+      - 'docs/**'
+      - '.github/workflows/platform-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  platform:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, bcmath, pdo_pgsql, pdo_sqlite, sqlite3, redis
+          tools: composer
+          coverage: none
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Laravel platform packages
+        working-directory: backend
+        run: |
+          composer install --no-interaction --no-progress
+          test -f .env || cp .env.example .env
+          mkdir -p database
+          test -f database/database.sqlite || touch database/database.sqlite
+          php artisan key:generate --force
+          composer require laravel/sanctum laravel/reverb laravel/horizon --with-all-dependencies --no-interaction --no-progress
+          php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider" --force
+          php artisan vendor:publish --provider="Laravel\\Horizon\\HorizonServiceProvider" --force
+
+      - name: Validate Laravel
+        working-directory: backend
+        run: |
+          composer validate --strict
+          php artisan about --only=environment,cache,database
+          php artisan route:list --path=api
+          php artisan test
+
+      - name: Validate Flutter
+        working-directory: mobile
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Commit generated dependency metadata
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend/composer.json backend/composer.lock backend/config backend/database/migrations mobile/pubspec.lock
+          git diff --cached --quiet && echo 'No dependency metadata changes required.' && exit 0
+          git commit -m 'chore: lock Vo-App platform dependencies'
+          git push
