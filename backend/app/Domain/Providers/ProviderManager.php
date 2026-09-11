@@ -19,6 +19,7 @@ class ProviderManager
     {
         $configured = config('providers.drivers.' . $provider->slug);
         $driverName = is_array($configured) ? ($configured['driver'] ?? null) : null;
+        $driverName = $driverName ?: ($provider->metadata['driver'] ?? null);
 
         if (!$driverName || !isset($this->drivers[$driverName])) {
             throw new InvalidArgumentException(
