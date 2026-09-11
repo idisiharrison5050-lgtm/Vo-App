@@ -35,6 +35,9 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 - Provider-neutral number infrastructure contract is defined.
 - Provider driver registry is explicit, with configuration separated from credentials and a controlled inventory adapter for the current internal inventory path.
 - Provider failures have a dedicated domain exception carrying retryability and provider error codes.
+- Number renewal now creates a separately auditable renewal order, charges the wallet idempotently, and dispatches provider renewal asynchronously.
+- Renewal provider failures reverse the renewal charge without extending the assignment.
+- Non-auto-renewing expired assignments now have a server-side expiry command scheduled hourly, releasing their inventory while retaining historical assignment records.
 - SMS and provider webhook persistence models/migrations are defined.
 - Sanctum-based authentication endpoints and versioned API routing are established in code.
 - Flutter has moved from the generated counter app to a premium Vo-App shell with dashboard, wallet, numbers, messages and marketplace-oriented navigation.
@@ -42,9 +45,9 @@ Vo-App is being built as a substantial first release. We are not rushing to mark
 
 ## Next engineering sequence
 1. Get CI fully green and keep dependency locking deterministic.
-2. Add production provider adapters behind the provider registry, including authenticated API calls, webhook handling, health checks and failover boundaries.
-3. Complete renewal/release lifecycle commands with provider coordination, refunds/reversals and expiry handling.
-4. Implement payment/funding intents, webhook verification and reconciliation.
+2. Harden renewal concurrency and add dedicated lifecycle tests for renewal, expiry, retries and wallet reversals.
+3. Add production provider adapters behind the provider registry, including authenticated API calls, webhook handling, health checks and failover boundaries.
+4. Add payment/funding intents, webhook verification and reconciliation.
 5. Implement SMS webhook verification, asynchronous processing, deduplication and realtime delivery.
 6. Build the complete Flutter authentication flow and API client/session layer.
 7. Replace placeholder mobile sections with production marketplace, active-number, SMS, wallet, orders and settings experiences.
