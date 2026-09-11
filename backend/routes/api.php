@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\MarketplaceController;
+use App\Http\Controllers\Api\V1\NumberLifecycleController;
 use App\Http\Controllers\Api\V1\NumberOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,5 +26,7 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/orders/numbers', [NumberOrderController::class, 'store'])
             ->middleware('throttle:20,1');
+        Route::post('/numbers/assignments/{assignment}/renew', [NumberLifecycleController::class, 'renew'])
+            ->middleware('throttle:10,1');
     });
 });
