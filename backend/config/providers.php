@@ -10,6 +10,8 @@ return [
     | manager. Never commit provider API keys to the repository.
     |
     */
+    'default' => env('NUMBER_PROVIDER_DEFAULT', 'inventory'),
+
     'drivers' => [
         'inventory' => [
             'driver' => 'inventory',
