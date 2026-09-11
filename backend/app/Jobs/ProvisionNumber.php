@@ -32,16 +32,13 @@ class ProvisionNumber implements ShouldQueue
 
     public function handle(ProviderManager $providers, WalletLedger $walletLedger): void
     {
-        $order = Order::with(['phoneNumber.provider', 'assignment'])
-            ->find($this->orderId);
-
+        $order = Order::with(['phoneNumber.provider', 'assignment'])->find($this->orderId);
         if (!$order || $order->status !== 'pending_provisioning') {
             return;
         }
 
         $phone = $order->phoneNumber;
         $provider = $phone ? $phone->provider : null;
-
         if (!$phone || !$provider) {
             $this->failProvisioning($order, $walletLedger, 'Missing number/provider for provisioning.');
             return;
@@ -86,7 +83,6 @@ class ProvisionNumber implements ShouldQueue
             ])->save();
 
             $assignment->forceFill(['status' => 'active'])->save();
-
             $lockedOrder->forceFill([
                 'status' => 'completed',
                 'completed_at' => now(),
@@ -121,10 +117,7 @@ class ProvisionNumber implements ShouldQueue
             }
 
             if ($assignment) {
-                $assignment->forceFill([
-                    'status' => 'failed',
-                    'released_at' => now(),
-                ])->save();
+                $assignment->forceFill(['status' => 'failed', 'released_at' => now()])->save();
             }
 
             $walletLedger->credit(
@@ -138,16 +131,22 @@ class ProvisionNumber implements ShouldQueue
 
             $lockedOrder->forceFill([
                 'status' => 'failed',
-                'metadata' => array_merge($lockedOrder->metadata ?? [], [
-                    'provisioning_error' => $reason,
-                ]),
+                'metadata' => array_merge($lockedOrder->metadata ?? [], ['provisioning_error' => $reason]),
             ])->save();
         });
     }
 
     public function failed(Throwable $exception): void
     {
-        // The final provider failure is reconciled by the next lifecycle pass.
-        // Keeping the job failed preserves the original exception in Laravel's failed_jobs table.
+        $order = Order::find($this->orderId);
+        if (!$order || $order->status !== 'pending_provisioning') {
+            return;
+        }
+
+        $this->failProvisioning(
+            $order,
+            app(WalletLedger::class),
+            'Provider provisioning failed after all retries: ' . $exception->getMessage(),
+        );
     }
 }
