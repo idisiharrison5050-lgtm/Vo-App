@@ -28,6 +28,7 @@ jobs:
           extensions: mbstring, bcmath, pdo_pgsql, pdo_sqlite, sqlite3, redis
           tools: composer
           coverage: none
+          ini-file: development
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
