@@ -201,7 +201,7 @@ class _BalanceCard extends StatelessWidget {
             const Expanded(child: Text('USD wallet', style: TextStyle(color: Colors.white54, fontSize: 12))),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(.09), borderRadius: BorderRadius.circular(30)),
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: .09), borderRadius: BorderRadius.circular(30)),
               child: const Text('Fund wallet  →', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
             ),
           ]),
