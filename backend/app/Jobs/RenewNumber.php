@@ -153,30 +153,32 @@ class RenewNumber implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        $order = Order::find($this->orderId);
-        if (!$order || $order->status !== 'pending_provisioning') {
-            return;
-        }
+        DB::transaction(function () use ($exception) {
+            $order = Order::query()->lockForUpdate()->find($this->orderId);
+            if (!$order || $order->status !== 'pending_provisioning') {
+                return;
+            }
 
-        // A retryable provider outage must not strand the customer's funds when
-        // the queue exhausts its attempts. The ledger reversal is idempotent.
-        app(WalletLedger::class)->credit(
-            $order->user_id,
-            $order->total_minor,
-            $order->currency,
-            'refund:order:' . $order->id,
-            'number_renewal_reversal',
-            ['order_id' => $order->id, 'reason' => $exception->getMessage(), 'attempts_exhausted' => true],
-        );
+            app(WalletLedger::class)->credit(
+                $order->user_id,
+                $order->total_minor,
+                $order->currency,
+                'refund:order:' . $order->id,
+                'number_renewal_reversal',
+                [
+                    'order_id' => $order->id,
+                    'reason' => $exception->getMessage(),
+                    'attempts_exhausted' => true,
+                ],
+            );
 
-        Order::whereKey($order->id)
-            ->where('status', 'pending_provisioning')
-            ->update([
+            $order->forceFill([
                 'status' => 'failed',
                 'metadata' => array_merge($order->metadata ?? [], [
                     'renewal_error' => $exception->getMessage(),
                     'attempts_exhausted' => true,
                 ]),
-            ]);
+            ])->save();
+        });
     }
 }
