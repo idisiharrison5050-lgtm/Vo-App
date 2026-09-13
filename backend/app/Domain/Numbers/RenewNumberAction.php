@@ -2,8 +2,8 @@
 
 namespace App\Domain\Numbers;
 
-use App\Jobs\RenewNumber;
 use App\Domain\Wallet\WalletLedger;
+use App\Jobs\RenewNumber;
 use App\Models\NumberAssignment;
 use App\Models\NumberOffer;
 use App\Models\Order;
@@ -85,8 +85,10 @@ class RenewNumberAction
                 'placed_at' => now(),
                 'metadata' => [
                     'assignment_id' => $assignment->id,
+                    'term_type' => $assignment->term_type,
                     'duration_days' => $days,
                     'provider_reference' => $assignment->phoneNumber->provider_reference,
+                    'provider_operation_reference' => 'renewal:' . $idempotencyKey,
                 ],
             ]);
 
