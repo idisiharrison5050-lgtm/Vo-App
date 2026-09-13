@@ -41,6 +41,7 @@ class RenewNumber implements ShouldQueue
         $provider = $phone ? $phone->provider : null;
         $reference = $phone ? $phone->provider_reference : null;
         $days = (int) ($order->metadata['duration_days'] ?? 0);
+        $operationReference = $order->metadata['provider_operation_reference'] ?? ('renewal:order:' . $order->id);
 
         if (!$assignment || !$phone || !$provider || !$reference || $days < 1) {
             $this->failRenewal($order, $walletLedger, 'Renewal state is incomplete.');
@@ -48,7 +49,9 @@ class RenewNumber implements ShouldQueue
         }
 
         try {
-            $result = $providers->driver($provider)->renew($reference, $days);
+            // External provider mutation deliberately happens outside a DB transaction.
+            // The operation reference lets real providers deduplicate a retried mutation.
+            $result = $providers->driver($provider)->renew($reference, $days, $operationReference);
         } catch (ProviderException $exception) {
             if ($exception->retryable) {
                 throw $exception;
@@ -74,18 +77,54 @@ class RenewNumber implements ShouldQueue
                 throw new \RuntimeException('Renewal number no longer exists.');
             }
 
+            $termType = (string) ($lockedOrder->metadata['term_type'] ?? $lockedOrder->term_type);
             $lockedAssignment->forceFill([
-                'ends_at' => $lockedAssignment->ends_at->copy()->addDays((int) ($lockedOrder->metadata['duration_days'] ?? 0)),
+                'ends_at' => $this->nextEndDate($lockedAssignment->ends_at, $termType),
             ])->save();
+
+            if (!empty($result['provider_reference']) && $result['provider_reference'] !== $lockedPhone->provider_reference) {
+                $lockedPhone->forceFill(['provider_reference' => $result['provider_reference']])->save();
+            }
 
             $lockedOrder->forceFill([
                 'status' => 'completed',
                 'completed_at' => now(),
                 'metadata' => array_merge($lockedOrder->metadata ?? [], [
                     'provider_reference' => $result['provider_reference'] ?? $lockedPhone->provider_reference,
+                    'provider_renewed_at' => now()->toISOString(),
                 ]),
             ])->save();
         });
+    }
+
+    private function nextEndDate($currentEnd, string $termType)
+    {
+        if (!$currentEnd) {
+            return now()->addDays($this->durationDays($termType));
+        }
+
+        return match ($termType) {
+            'daily', 'instant' => $currentEnd->copy()->addDay(),
+            'weekly' => $currentEnd->copy()->addWeek(),
+            'monthly' => $currentEnd->copy()->addMonthNoOverflow(),
+            'quarterly' => $currentEnd->copy()->addMonthsNoOverflow(3),
+            'annual' => $currentEnd->copy()->addYearNoOverflow(),
+            'custom' => $currentEnd->copy()->addDays($this->durationDays($termType)),
+            default => throw new \RuntimeException('INVALID_TERM_TYPE'),
+        };
+    }
+
+    private function durationDays(string $termType): int
+    {
+        return match ($termType) {
+            'daily', 'instant' => 1,
+            'weekly' => 7,
+            'monthly' => 30,
+            'quarterly' => 90,
+            'annual' => 365,
+            'custom' => 30,
+            default => throw new \RuntimeException('INVALID_TERM_TYPE'),
+        };
     }
 
     private function failRenewal(Order $order, WalletLedger $walletLedger, string $reason): void
@@ -114,6 +153,30 @@ class RenewNumber implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        // Failed jobs remain available for operational reconciliation and alerting.
+        $order = Order::find($this->orderId);
+        if (!$order || $order->status !== 'pending_provisioning') {
+            return;
+        }
+
+        // A retryable provider outage must not strand the customer's funds when
+        // the queue exhausts its attempts. The ledger reversal is idempotent.
+        app(WalletLedger::class)->credit(
+            $order->user_id,
+            $order->total_minor,
+            $order->currency,
+            'refund:order:' . $order->id,
+            'number_renewal_reversal',
+            ['order_id' => $order->id, 'reason' => $exception->getMessage(), 'attempts_exhausted' => true],
+        );
+
+        Order::whereKey($order->id)
+            ->where('status', 'pending_provisioning')
+            ->update([
+                'status' => 'failed',
+                'metadata' => array_merge($order->metadata ?? [], [
+                    'renewal_error' => $exception->getMessage(),
+                    'attempts_exhausted' => true,
+                ]),
+            ]);
     }
 }
