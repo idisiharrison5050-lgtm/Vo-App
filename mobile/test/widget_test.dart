@@ -10,10 +10,16 @@ void main() {
     expect(find.text('Harrison'), findsOneWidget);
     expect(find.text('Available balance'), findsOneWidget);
     expect(find.text('Your numbers'), findsOneWidget);
-    expect(find.text('Explore numbers'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Numbers'), findsOneWidget);
     expect(find.text('Messages'), findsOneWidget);
     expect(find.text('Wallet'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Explore numbers'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Explore numbers'), findsOneWidget);
   });
 }
