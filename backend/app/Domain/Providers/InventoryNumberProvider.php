@@ -3,7 +3,6 @@
 namespace App\Domain\Providers;
 
 use App\Models\PhoneNumber;
-use RuntimeException;
 
 /**
  * Internal inventory adapter used for development and controlled deployments.
@@ -45,7 +44,7 @@ class InventoryNumberProvider implements NumberProvider
         ];
     }
 
-    public function renew(string $providerReference, int $durationDays): array
+    public function renew(string $providerReference, int $durationDays, ?string $operationReference = null): array
     {
         if ($durationDays < 1) {
             throw new ProviderException('Renewal duration must be at least one day.', false, 'INVALID_DURATION');
@@ -54,6 +53,7 @@ class InventoryNumberProvider implements NumberProvider
         return [
             'provider_reference' => $providerReference,
             'duration_days' => $durationDays,
+            'operation_reference' => $operationReference,
         ];
     }
 
