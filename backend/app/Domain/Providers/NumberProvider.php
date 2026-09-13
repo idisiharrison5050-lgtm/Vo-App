@@ -8,7 +8,11 @@ interface NumberProvider
 
     public function provision(array $requirements): array;
 
-    public function renew(string $providerReference, int $durationDays): array;
+    /**
+     * Renew an assigned number. Providers should use the operation reference
+     * as their idempotency key when their API supports idempotent mutations.
+     */
+    public function renew(string $providerReference, int $durationDays, ?string $operationReference = null): array;
 
     public function release(string $providerReference): void;
 
